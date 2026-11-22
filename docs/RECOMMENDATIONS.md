@@ -14,3 +14,5 @@ Scores total 100:
 Missing optional categories do not receive zero points. Component averages are rounded before summation. The top three unique combinations are returned; one pair yields one result. Low scores remain visible with a caveat. Example: casual navy top + casual white bottom, both all-season, for college/normal/any with no history: 30 + 30 + 20 + 10 + 10 = 100. Worn yesterday: 90.
 
 Scores and reasons are saved as snapshots. Regenerate to account for edits. Existing Phase 3 fixed favorites remain labeled legacy samples; new generated favorites are stored separately by combination ID. History keeps item snapshots for repetition checks even after clothing deletion. The UI clock refreshes on history changes and every minute.
+
+Previously worn combinations require explicit Wear again confirmation before another history entry. Persisted history determines that state across restarts.

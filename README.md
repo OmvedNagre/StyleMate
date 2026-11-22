@@ -4,7 +4,7 @@ A personal smart wardrobe assistant for iOS and Android, built with JavaScript, 
 
 ## Current build
 
-Phase 4 recommendations and local storage: clothing details, photo references, favorites, wear-history snapshots, and the default style are saved in SQLite on the device. Camera/gallery photos live in private app documents storage. The wardrobe loads saved records at startup and offers Retry if opening storage fails; it never resets the database to recover from an error.
+Phase 5 favorites, wear history, recommendations and local storage: clothing details, photo references, favorites, wear-history snapshots, and the default style are saved in SQLite on the device. Camera/gallery photos live in private app documents storage. The wardrobe loads saved records at startup and offers Retry if opening storage fails; it never resets the database to recover from an error.
 
 Fresh installs start empty. Add your own clothing, or explicitly add the five labeled sample illustrations from Profile to explore recommendations. Sample controls preserve photo pieces, favorites, and history. Discover now generates up to three actual combinations with rule-based scores and explanations. See [recommendation rules](docs/RECOMMENDATIONS.md).
 
@@ -91,4 +91,10 @@ A process crash between photo copy and database commit can leave an unreferenced
 
 Phase 3 device checklist: add a real photo, edit its attributes, save the sample outfit and mark it worn, terminate/reopen the app, verify all records/images, replace/delete the photo, reopen again, and verify favorites/history still render. Test SQLite error/retry and storage failures on test devices. These native checks remain pending.
 
-Next: Phase 5 — favorites and wear-history workflow polish.
+Next: Phase 6 — cross-platform testing, polish and reliability.
+
+## Favorites and wear history
+
+Save or remove each generated outfit independently. Saved cards retain generation-time scores and name missing pieces from their snapshots. Missing pieces disable wear recording; Generate fresh suggestions returns to Discover.
+
+Mark as worn records the current clothing details and time. Previously worn outfits show the last wear date and a Wear again action, including after restart. Another entry requires confirmation. Cancelling adds nothing; in-flight locks prevent duplicate submissions. History remains newest first, retains text after deletion, and influences recommendation ranking.

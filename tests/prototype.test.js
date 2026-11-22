@@ -103,7 +103,7 @@ test('favorites toggle and worn history is a single preserved snapshot', async (
   await fireEvent.press(screen.getByText('Remove from favorites'));
   expect(state().savedOutfits).toHaveLength(0);
   await fireEvent.press(screen.getByText('Mark as worn'));
-  await fireEvent.press(screen.getByText('Marked worn this session'));
+  await fireEvent.press(screen.getByText('Wear again…'));
   expect(state().history).toHaveLength(1);
   await fireEvent.press(screen.getByText('Remove shirt fixture'));
   expect(state().history[0].items).toEqual(fixtureOutfit.items);
@@ -188,4 +188,30 @@ test('favorite write failure does not show a saved state', async () => {
   expect(screen.getByText('Could not store this change. Please try again.')).toBeTruthy();
   await fireEvent.press(screen.getByText('Save outfit'));
   expect(state().savedOutfits).toHaveLength(1);
+});
+
+test('repeat wear requires confirmation and adds one new snapshot', async () => {
+  const alert = jest.spyOn(Alert, 'alert');
+  await mount(<OutfitCard outfit={fixtureOutfit} />);
+  await fireEvent.press(screen.getByText('Mark as worn'));
+  const original = state().history[0];
+  await fireEvent.press(screen.getByText('Wear again…'));
+  expect(state().history).toHaveLength(1);
+  const buttons = alert.mock.calls.at(-1)[2];
+  expect(buttons[0].text).toBe('Cancel');
+  await require('@testing-library/react-native').act(async () => { await buttons[1].onPress(); });
+  expect(state().history).toHaveLength(2);
+  expect(state().history[1]).toEqual(original);
+  alert.mockRestore();
+});
+
+test('saved missing pieces retain their names and disable wear recording', async () => {
+  await mount(<OutfitCard outfit={fixtureOutfit} />);
+  await fireEvent.press(screen.getByText('Save outfit'));
+  await fireEvent.press(screen.getByText('Remove shirt fixture'));
+  expect(screen.getByText('The everyday shirt · No longer in your wardrobe')).toBeTruthy();
+  await fireEvent.press(screen.getByText('Mark as worn'));
+  expect(state().history).toHaveLength(0);
+  await fireEvent.press(screen.getByText('Remove from favorites'));
+  expect(state().savedOutfits).toHaveLength(0);
 });
