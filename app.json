@@ -20,7 +20,15 @@
     "scheme": "stylemate",
     "plugins": [
       "expo-router",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow StyleMate to take photos of your clothing.",
+          "photosPermission": "Allow StyleMate to select clothing photos.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "platforms": [
       "ios",

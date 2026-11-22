@@ -15,7 +15,10 @@ import Saved from '../src/app/outfits/saved';
 import History from '../src/app/outfits/history';
 import NotFound from '../src/app/+not-found';
 import OutfitCard from '../src/components/OutfitCard';
+import { pickImage, persistImage } from '../src/services/imageService';
 import { Button } from '../src/components/ui';
+
+jest.mock('../src/services/imageService', () => ({ pickImage: jest.fn(), persistImage: jest.fn(async () => 'file:///documents/wardrobe/clothing-test.jpg'), removeImage: jest.fn(async () => {}) }));
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => false }, useLocalSearchParams: () => ({ id: 'demo-shirt' }) }));
 jest.mock('react-native-safe-area-context', () => ({ SafeAreaView: require('react-native').View }));
@@ -30,7 +33,7 @@ beforeEach(() => jest.clearAllMocks());
 
 test.each([Home, Wardrobe, Discover, Profile, Details, Edit, Results, Saved, History, NotFound])('%p renders with explicit demo disclosure', async (Component) => {
   await mount(<Component />);
-  expect(screen.getByText(/DEMO PREVIEW/)).toBeTruthy();
+  expect(screen.getByText(/PHASE 2 PREVIEW/)).toBeTruthy();
 });
 
 test('wardrobe filters and its empty view remain navigable', async () => {
@@ -39,29 +42,30 @@ test('wardrobe filters and its empty view remain navigable', async () => {
   expect(screen.getByText('Clean white sneakers')).toBeTruthy();
   expect(screen.queryByText('The everyday shirt')).toBeNull();
   await fireEvent.press(screen.getByLabelText('Browse by category: Accessory'));
-  expect(screen.getByText('There are no demo pieces in this view.')).toBeTruthy();
-  await fireEvent.press(screen.getByText('Add a demo piece'));
+  expect(screen.getByText('There are no pieces in this view.')).toBeTruthy();
+  await fireEvent.press(screen.getByText('Add a piece'));
   expect(router.push).toHaveBeenCalledWith('/clothing/add');
 });
 
 test('form validates and then adds a temporary item with a valid type after category changes', async () => {
   await mount(<ClothingForm />);
-  await fireEvent.press(screen.getByText('Add to demo wardrobe'));
+  await fireEvent.press(screen.getByText('Add to wardrobe'));
   expect(screen.getByText('Enter a name for this piece.')).toBeTruthy();
-  expect(screen.getByText('Choose a sample illustration.')).toBeTruthy();
+  expect(screen.getByText('Choose a clothing photo.')).toBeTruthy();
   expect(state().items).toHaveLength(5);
   await fireEvent.changeText(screen.getByLabelText('Clothing name'), '  My new trousers  ');
-  await fireEvent.press(screen.getByLabelText('Use a demo illustration: Trousers'));
+  pickImage.mockResolvedValueOnce({ status: 'selected', uri: 'file:///cache/picked.jpg' });
+  await fireEvent.press(screen.getByText('Choose from Gallery'));
   await fireEvent.press(screen.getByLabelText('Category *: Bottomwear'));
-  await fireEvent.press(screen.getByText('Add to demo wardrobe'));
-  expect(state().items[0]).toMatchObject({ name: 'My new trousers', category: 'bottomwear', itemType: 'jeans', image: 'trousers' });
+  await fireEvent.press(screen.getByText('Add to wardrobe'));
+  expect(state().items[0]).toMatchObject({ name: 'My new trousers', category: 'bottomwear', itemType: 'jeans', imageUri: 'file:///documents/wardrobe/clothing-test.jpg' });
   expect(router.replace).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/clothing/[id]' }));
 });
 
 test('edit updates the same record and does not duplicate it', async () => {
   await mount(<Edit />);
   await fireEvent.changeText(screen.getByLabelText('Clothing name'), 'Edited shirt');
-  await fireEvent.press(screen.getByText('Update demo piece'));
+  await fireEvent.press(screen.getByText('Update piece'));
   expect(state().items).toHaveLength(5);
   expect(state().items.find((item) => item.id === 'demo-shirt').name).toBe('Edited shirt');
 });
@@ -90,9 +94,9 @@ test('favorites toggle and worn history is a single preserved snapshot', async (
 test('delete asks for confirmation before changing the collection', async () => {
   const alert = jest.spyOn(Alert, 'alert');
   await mount(<Details />);
-  await fireEvent.press(screen.getByText('Remove demo piece'));
+  await fireEvent.press(screen.getByText('Remove piece'));
   expect(state().items).toHaveLength(5);
-  expect(alert).toHaveBeenCalledWith('Remove this demo piece?', expect.any(String), expect.arrayContaining([expect.objectContaining({ text: 'Keep piece', style: 'cancel' }), expect.objectContaining({ text: 'Remove', style: 'destructive' })]));
+  expect(alert).toHaveBeenCalledWith('Remove this piece?', expect.any(String), expect.arrayContaining([expect.objectContaining({ text: 'Keep piece', style: 'cancel' }), expect.objectContaining({ text: 'Remove', style: 'destructive' })]));
   alert.mockRestore();
 });
 
@@ -101,4 +105,32 @@ test('empty wardrobe and incomplete sample results are honest', async () => {
   await fireEvent.press(screen.getByText('Clear fixture'));
   expect(screen.getByText('The sample look is incomplete')).toBeTruthy();
   expect(screen.queryByText(/Example score/)).toBeNull();
+});
+
+
+test('failed photo copy leaves the wardrobe unchanged and allows retry', async () => {
+  await mount(<ClothingForm />);
+  await fireEvent.changeText(screen.getByLabelText('Clothing name'), 'Real shirt');
+  pickImage.mockResolvedValueOnce({ status: 'selected', uri: 'file:///cache/photo.jpg' });
+  await fireEvent.press(screen.getByText('Take Photo'));
+  persistImage.mockRejectedValueOnce(new Error('Storage full'));
+  await fireEvent.press(screen.getByText('Add to wardrobe'));
+  expect(state().items).toHaveLength(5);
+  expect(screen.getByText(/Could not save this piece/)).toBeTruthy();
+  expect(router.replace).not.toHaveBeenCalled();
+  await fireEvent.press(screen.getByText('Add to wardrobe'));
+  expect(state().items).toHaveLength(6);
+});
+
+test('picker cancellation is quiet and camera denial offers Settings', async () => {
+  const alert = jest.spyOn(Alert, 'alert');
+  await mount(<ClothingForm />);
+  pickImage.mockResolvedValueOnce({ status: 'canceled' });
+  await fireEvent.press(screen.getByText('Choose from Gallery'));
+  expect(alert).not.toHaveBeenCalled();
+  expect(state().items).toHaveLength(5);
+  pickImage.mockResolvedValueOnce({ status: 'denied' });
+  await fireEvent.press(screen.getByText('Take Photo'));
+  expect(alert).toHaveBeenCalledWith('Camera access needed', expect.any(String), expect.arrayContaining([expect.objectContaining({ text: 'Open Settings' })]));
+  alert.mockRestore();
 });

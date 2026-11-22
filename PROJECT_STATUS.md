@@ -1,55 +1,54 @@
 # StyleMate Project Status
 
 ## Current phase
-Phase 1 — Screen UI and design system
+Phase 2 — Clothing photo capture and wardrobe CRUD
 
 ## Overall status
-Phase 1 implementation and automated verification are complete. Native visual, navigation, small-screen, keyboard, and safe-area acceptance checks remain pending. User authorized proceeding from the Phase 0 foundation; its outstanding device checks also remain open. Phase 2 has not started.
+Phase 2 implementation and automated checks completed. Native camera/gallery, filesystem, permissions and visual acceptance remain pending physical-device testing. Phase 3 has not started. Earlier native navigation/keyboard checks also remain open.
 
 ## Completed
-- [x] Existing repository and handoff reviewed; preserved JavaScript, Expo SDK 58, Expo Router and the four tabs.
-- [x] Home: demo count, recent pieces, Discover entry and fixed outfit preview.
-- [x] Wardrobe: responsive grid, category filters, empty state, add/details navigation.
-- [x] Add/edit forms: controlled attributes, sample illustration selector, name/image/season validation, keyboard-avoiding scroll container, duplicate-submit guard.
-- [x] Details: garment illustration, attributes, edit and confirmed temporary deletion.
-- [x] Discover: occasion, manual weather, preferred style and footwear selections; choices passed to preview route.
-- [x] Results: one clearly labeled fixed example, illustrative score/reasons, temporary favorite and mark-worn actions.
-- [x] Saved outfits and history: empty/populated layouts, snapshot display and missing-item handling.
-- [x] Profile: saved/history links, session style preference, about, reset/empty demo controls, explicit loading/error previews.
-- [x] Shared controls, theme, labels, minimum touch targets, wrapping choices, narrower-screen/large-text single-column grid fallback.
-- [x] Demo context separated from screen code; temporary data and reset-on-restart behavior disclosed on every screen.
-- [x] Added component/interaction tests and updated README walkthrough.
-- [ ] Actual iOS/Android navigation, visual quality, keyboard, safe areas and small-device/large-text acceptance checks.
+- [x] Installed SDK-compatible Expo Image Picker and FileSystem.
+- [x] Separate Take Photo and Choose from Gallery actions with preview.
+- [x] Camera permission requested on action; permanent denial avoids repeated requests, offers Settings. Gallery uses the image-only system picker without broad library access.
+- [x] Cancellation leaves the current selection unchanged; picker errors are visible.
+- [x] Manual clothing attributes and validation; loading/duplicate-submit guards.
+- [x] Persistent image copying to private documents/wardrobe, unique file names and extension preservation.
+- [x] A failed copy does not insert a record; partial-copy cleanup is attempted.
+- [x] Clothing view/edit/delete uses temporary in-memory records as allowed by Phase 2.
+- [x] Replacement copies the new photo before removing the old one; failed old-file cleanup retains the previous record and attempts new-copy cleanup.
+- [x] Confirmed deletion removes only service-owned image paths; absent files are tolerated and deletion failures retain the record.
+- [x] Photo component used in cards, details, previews and history, with unavailable-image fallback.
+- [x] Sample reset/hide preserves user photo items in the current session, including sample items updated with real photos.
+- [x] No AI, backend, location service, or recognition added. Microphone permission disabled in plugin config.
+- [ ] Native/device acceptance for camera, gallery, denial, persistence, image display and small-screen layouts.
 
 ## Verification performed
-On 2026-11-22:
-- `npm test -- --watchman=false`: 17 tests passed. Covers all main screen components, category filtering, empty category, form validation/create, edit without duplication, Discover route parameters, favorite toggling, single history insertion, snapshot retention after deletion, deletion confirmation and incomplete results.
-- Tests use native component mocks and mocked router; they do not verify a real navigation stack or native layout.
-- `npm run typecheck`: passed; application source remains JavaScript with JSDoc.
+2026-11-22:
+- `npm test -- --watchman=false`: 30 tests passed across 2 suites. Existing UI tests plus picker cancellation, camera denial/permission requests, copy failure/retry, extension preservation, safe deletion boundaries and missing-file handling.
+- Filesystem/picker tests mock native modules; they verify application control flow and guards, not actual device behavior.
 - `npm run lint`: passed.
-- `npm run export:mobile`: iOS and Android Hermes bundles exported successfully.
+- `npm run typecheck`: passed; application remains JavaScript.
+- `npm run export:mobile`: iOS and Android Hermes exports passed.
 - `npx expo install --check`: dependencies up to date.
 - `npx --yes expo-doctor`: 20/20 checks passed.
-- Inspected routes, state ownership, dependency changes and source files.
-- Platforms tested: component test environment and both mobile bundlers. No simulator, emulator or physical-device testing.
-- Phase 0 development-server startup was verified previously; this phase adds component rendering and interaction verification.
+- `git diff --check`: passed; reviewed changed source/config and documentation.
+- Platforms tested: component mocks and mobile bundlers only. No simulator/emulator/physical device.
 
 ## Known issues
-- No full Xcode/simctl or Android SDK/adb is installed in this environment. Native acceptance remains unverified; bundling and component tests are not device testing.
-- Native illustrations stand in for photos and intentionally do not change with selected attributes. No actual image loading/capture is implemented yet.
-- The fixed outfit's score/reasons intentionally do not react to edits or Discover preferences; explanatory text makes this explicit.
-- Demo mark-worn allows one history entry per session/reset. Real repeated wear flows belong to later phases.
-- Default style is used when Discover mounts; an already-open Discover retains its current selection.
-- npm installation reports 22 moderate advisories after adding development test tooling. The prior Expo/minimatch advisory remains recorded; no forced dependency downgrade was applied.
-- Template launcher artwork remains.
+- Full Xcode/simctl and Android SDK/adb remain unavailable. Device verification cannot be claimed.
+- Clothing metadata is intentionally in memory for this phase and resets on restart. Images live in persistent documents storage but become unreferenced after that reset; the UI cannot restore them yet. SQLite and restart recovery are Phase 3.
+- No destructive startup cleanup of unreferenced photos. Such files can remain until app uninstall; this is a development preview.
+- History text snapshots survive deletion within the session, but deleted/replaced image files show the image-unavailable fallback.
+- Android activity termination during picking is not recovered into a draft; users may need to select again.
+- Fixed sample outfit scores/reasons are still illustrative, not computed from wardrobe edits or preferences.
+- Dependency installation reports 22 moderate advisories, unchanged from Phase 1. No forced SDK downgrade.
 
 ## Decisions / assumptions
-- User's “Proceed to next phase” authorizes Phase 1 only, retaining the handoff's phased scope.
-- Use local native garment illustrations to keep the UI prototype offline and avoid remote sample-photo dependencies. They are explicitly labeled as illustrations.
-- Sample interactions are in-memory prototype behavior, not production persistence or a recommendation engine.
-- Camera/gallery availability controls show an honest explanation rather than falsely claiming a photo was selected; Phase 2 will replace them with actual pickers.
-- Added Jest/Expo and React Native Testing Library only as development dependencies. No production dependencies added.
-- Kept existing Git origin https://github.com/OmvedNagre/StyleMate.git and branch codex/project-foundation. Phase 0 and Phase 1 are included in the initial GitHub delivery on this branch. The user authorized committing and pushing after each phase on 2026-11-22; subsequent phase updates must follow that workflow.
+- Follow only Phase 2; use the handoff's explicit option for in-memory records rather than prematurely implementing Phase 3.
+- Preserve sample illustrations for existing demo items; new clothing requires an actual photo.
+- Use the installed SDK's File/Directory APIs and the platform image-only picker; do not upload photos or request broad permissions unnecessarily.
+- Keep all photo side effects in imageService and session CRUD coordination, outside presentation components.
+- User authorized automatic commits and pushes after each phase. Delivery branch remains codex/project-foundation, tracking origin.
 
 ## Next action
-Run the README UI checklist on iOS and Android and record device results. Next implementation phase: Phase 2 — Clothing photo capture and wardrobe CRUD, with Expo Image Picker, permission/cancellation handling, image preview, persistent app-managed image copying, and safe deletion.
+Run the README's Phase 2 checklist on physical iOS and Android devices. Next implementation phase is Phase 3 — SQLite initialization/migrations, parameterized CRUD, durable wardrobe records, favorites/history persistence, and coordinated image/record failure handling.

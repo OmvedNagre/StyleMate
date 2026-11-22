@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { theme } from '../constants/theme';
 import { label } from '../constants/wardrobeOptions';
 import { ui } from './ui';
@@ -20,10 +21,19 @@ export function GarmentArt({ image }) {
     <Text style={ui.caption}>SAMPLE ILLUSTRATION</Text>
   </View>;
 }
+/** @param {{image: string, imageUri?: string}} props */
+export function ClothingImage({ image, imageUri }) {
+  return imageUri ? <Photo key={imageUri} uri={imageUri} /> : <GarmentArt image={image} />;
+}
+/** @param {{uri: string}} props */
+function Photo({ uri }) {
+  const [failed, setFailed] = useState(false);
+  return failed ? <View style={styles.art}><Text style={ui.body}>Photo unavailable. Edit this piece to choose a replacement.</Text></View> : <Image accessibilityLabel="Clothing photo" source={{ uri }} style={{ width: '100%', aspectRatio: 0.8, borderRadius: theme.radius.card }} resizeMode="cover" onError={() => setFailed(true)} />;
+}
 /** @param {{item: import('../demo/data').Clothing}} props */
 export function ClothingCard({ item }) {
   return <Pressable accessibilityRole="button" accessibilityLabel={`View ${item.name}`} onPress={() => router.push({ pathname: '/clothing/[id]', params: { id: item.id } })} style={styles.card}>
-    <GarmentArt image={item.image} /><Text style={ui.label}>{item.name}</Text><Text style={ui.caption}>{label(item.category)} · {label(item.color)}</Text>
+    <ClothingImage image={item.image} imageUri={item.imageUri} /><Text style={ui.label}>{item.name}</Text><Text style={ui.caption}>{label(item.category)} · {label(item.color)}</Text>
   </Pressable>;
 }
 /** @param {{items: import('../demo/data').Clothing[]}} props */

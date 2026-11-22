@@ -1,4 +1,4 @@
-/** @typedef {{ id: string, name: string, category: string, itemType: string, color: string, style: string, pattern: string, seasons: string[], image: string }} Clothing */
+/** @typedef {{ id: string, name: string, category: string, itemType: string, color: string, style: string, pattern: string, seasons: string[], image: string, imageUri?: string }} Clothing */
 /** @type {Clothing[]} */
 export const sampleClothing = [
   { id: 'demo-shirt', name: 'The everyday shirt', category: 'topwear', itemType: 'shirt', color: 'cream', style: 'smartCasual', pattern: 'plain', seasons: ['allSeason'], image: 'shirt' },

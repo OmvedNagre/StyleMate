@@ -13,7 +13,7 @@ export function Screen({ children, title, subtitle, back = false }) {
         <Text style={ui.eyebrow}>STYLEMATE / YOUR EVERYDAY EDIT</Text>
         <Text accessibilityRole="header" style={ui.title}>{title}</Text>
         {subtitle && <Text style={ui.body}>{subtitle}</Text>}
-        <View style={ui.notice}><Text style={ui.caption}>DEMO PREVIEW · Sample illustrations and temporary data. Changes reset on restart.</Text></View>
+        <View style={ui.notice}><Text style={ui.caption}>PHASE 2 PREVIEW · Sample illustrations are demo data. Your photos stay on-device, but clothing records reset on restart until Phase 3.</Text></View>
         {children}
       </ScrollView>
     </KeyboardAvoidingView>
