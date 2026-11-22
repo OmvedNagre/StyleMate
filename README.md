@@ -98,3 +98,5 @@ Next: Phase 6 — cross-platform testing, polish and reliability.
 Save or remove each generated outfit independently. Saved cards retain generation-time scores and name missing pieces from their snapshots. Missing pieces disable wear recording; Generate fresh suggestions returns to Discover.
 
 Mark as worn records the current clothing details and time. Previously worn outfits show the last wear date and a Wear again action, including after restart. Another entry requires confirmation. Cancelling adds nothing; in-flight locks prevent duplicate submissions. History remains newest first, retains text after deletion, and influences recommendation ranking.
+
+Phase 6 reliability review: see [native test matrix](docs/DEVICE_TEST_MATRIX.md). Host verification is complete; native acceptance remains pending.

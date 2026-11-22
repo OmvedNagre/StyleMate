@@ -26,7 +26,7 @@ export function DemoProvider({ children }) {
     (async () => {
       try {
         const repository = await getRepository();
-        await repository.cleanup(removeImage);
+        try { await repository.cleanup(removeImage); } catch { /* Cleanup must not prevent opening otherwise readable data. */ }
         const loaded = await repository.load();
         if (active) { current.current = loaded; setState(loaded); setReady(true); }
       } catch { if (active) setError('Could not open your wardrobe. Your stored data has not been reset. Retry to open it again.'); }
@@ -69,7 +69,16 @@ export function DemoProvider({ children }) {
       wearLock.current.add(outfit.id);
       const wornAt = new Date().toISOString();
       try {
-        await mutate((repository) => repository.markWorn({ id: `wear-${Date.now()}-${Math.random().toString(36).slice(2)}`, wornAt, outfitId: outfit.id, items: outfit.items.map((item) => ({ ...item, seasons: [...item.seasons] })) }, outfit));
+        await mutate(async (repository) => {
+          // Re-read inside the serialized operation: a queued deletion/edit may have invalidated the card.
+          const stored = await repository.load();
+          const items = outfit.clothingIds.map((id) => stored.items.find((item) => item.id === id));
+          if (outfit.legacy || !items.length || items.some((item) => !item)) throw new Error('This outfit is no longer available.');
+          const snapshot = /** @type {Clothing[]} */ (items);
+          if (snapshot.filter((item) => item.category === 'topwear').length !== 1 || snapshot.filter((item) => item.category === 'bottomwear').length !== 1) throw new Error('Regenerate this outfit after editing categories.');
+          if (!repeat && stored.history.some((entry) => entry.outfitId === outfit.id)) return;
+          await repository.markWorn({ id: `wear-${Date.now()}-${Math.random().toString(36).slice(2)}`, wornAt, outfitId: outfit.id, items: snapshot.map((item) => ({ ...item, seasons: [...item.seasons] })) }, outfit);
+        });
         setWornIds((ids) => [...new Set([...ids, outfit.id])]);
       } finally { wearLock.current.delete(outfit.id); }
     },

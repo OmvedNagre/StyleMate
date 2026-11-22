@@ -16,7 +16,7 @@ export default function ProfileScreen() {
     <Button title={`Outfit history · ${demo.history.length}`} secondary onPress={() => router.push('/outfits/history')} />
     <Choices title="Default style" values={['any', ...styles]} selected={demo.preferredStyle} onSelect={(value) => perform(() => demo.setPreferredStyle(value))} />
     <Text style={ui.caption}>Used when Discover first opens. Existing selections in an open Discover screen stay unchanged.</Text>
-    <View style={ui.card}><Text style={ui.heading}>A more considered everyday.</Text><Text style={ui.body}>StyleMate helps you rediscover the pieces you own. The planned app keeps your wardrobe on-device and explains outfit suggestions through simple rules.</Text><Text style={ui.caption}>Version 0.1.0 · Phase 4 outfit recommendations</Text></View>
+    <View style={ui.card}><Text style={ui.heading}>A more considered everyday.</Text><Text style={ui.body}>StyleMate helps you rediscover the pieces you own. The app keeps your wardrobe on-device and explains outfit suggestions through simple rules.</Text><Text style={ui.caption}>Version 0.1.0 · Local wardrobe assistant</Text></View>
     <Text accessibilityLiveRegion="polite" style={ui.error}>{error}</Text>
     <Text style={ui.heading}>Explore the prototype</Text>
     <Button title="Restore demo collection" secondary onPress={() => confirm()} />

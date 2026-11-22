@@ -215,3 +215,26 @@ test('saved missing pieces retain their names and disable wear recording', async
   await fireEvent.press(screen.getByText('Remove from favorites'));
   expect(state().savedOutfits).toHaveLength(0);
 });
+
+test('cleanup failure does not block a readable wardrobe at startup', async () => {
+  const repository = await require('../src/services/database').getRepository();
+  repository.cleanup.mockRejectedValueOnce(new Error('Cleanup busy'));
+  await mount(<Wardrobe />);
+  expect(state().items).toHaveLength(5);
+});
+
+test('wear recording rejects an outfit invalidated after the card rendered', async () => {
+  const repository = await require('../src/services/database').getRepository();
+  await mount(<OutfitCard outfit={fixtureOutfit} />);
+  await repository.deleteItem('demo-shirt');
+  await fireEvent.press(screen.getByText('Mark as worn'));
+  expect(repository.markWorn).not.toHaveBeenCalled();
+  expect(screen.getByText('Could not store this change. Please try again.')).toBeTruthy();
+});
+
+test('failed photo display shows a recoverable fallback', async () => {
+  const { ClothingImage } = require('../src/components/ClothingCard');
+  await render(<ClothingImage image="" imageUri="file:///missing.jpg" />);
+  await fireEvent(screen.getByLabelText('Clothing photo'), 'error');
+  expect(screen.getByText('Photo unavailable. Edit this piece to choose a replacement.')).toBeTruthy();
+});

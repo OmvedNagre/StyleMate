@@ -19,7 +19,7 @@ export default function OutfitCard({ outfit }) {
     finally { lock.current = false; setBusy(false); }
   };
   const items = outfit.clothingIds.flatMap((id) => demo.items.filter((item) => item.id === id));
-  const complete = items.length === outfit.clothingIds.length;
+  const complete = items.length === outfit.clothingIds.length && items.filter((item) => item.category === 'topwear').length === 1 && items.filter((item) => item.category === 'bottomwear').length === 1;
   const saved = demo.savedOutfits.some((entry) => entry.id === outfit.id);
   const lastWear = demo.history.find((entry) => entry.outfitId === outfit.id);
   const worn = !!lastWear || demo.wornIds.includes(outfit.id);
@@ -36,7 +36,7 @@ export default function OutfitCard({ outfit }) {
     <ClothingGrid items={items} />
     {missing.map((id) => <Text key={id} style={ui.body}>{outfit.items.find((item) => item.id === id)?.name ?? 'A saved piece'} · No longer in your wardrobe</Text>)}
     {lastWear && <Text style={ui.caption}>Last worn: {new Date(lastWear.wornAt).toLocaleString()}</Text>}
-    {!complete && <Text style={ui.error}>An item in this outfit is no longer available. You can remove it from favorites or generate a new outfit.</Text>}
+    {!complete && <Text style={ui.error}>An item in this outfit is no longer available or its category has changed. You can remove it from favorites or generate a new outfit.</Text>}
     <Text style={ui.caption}>Score and explanations are a snapshot. Regenerate after changing clothing attributes.</Text>
     {outfit.reasons.map((reason) => <Text key={reason} style={ui.body}>{reason}</Text>)}
     <Button title="Generate fresh suggestions" secondary onPress={() => router.push('/discover')} />

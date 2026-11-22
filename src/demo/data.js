@@ -7,9 +7,3 @@ export const sampleClothing = [
   { id: 'demo-jeans', name: 'Straight-leg denim', category: 'bottomwear', itemType: 'jeans', color: 'blue', style: 'casual', pattern: 'plain', seasons: ['allSeason'], image: 'jeans' },
   { id: 'demo-shoes', name: 'Clean white sneakers', category: 'footwear', itemType: 'sneakers', color: 'white', style: 'versatile', pattern: 'plain', seasons: ['allSeason'], image: 'shoes' },
 ];
-/** Fixed layout fixture, deliberately not a recommendation engine. */
-export const sampleOutfit = {
-  id: 'demo-outfit', name: 'Quiet essentials', score: 88,
-  clothingIds: ['demo-shirt', 'demo-chinos', 'demo-shoes'],
-  reasons: ['Example: soft neutrals balance the olive trousers.', 'Example: relaxed silhouettes suit an everyday look.'],
-};

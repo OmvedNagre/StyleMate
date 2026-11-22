@@ -1,7 +1,7 @@
 export const theme = {
   colors: {
     background: '#F7F5F0', surface: '#FFFFFF', textPrimary: '#20201E',
-    textSecondary: '#77736C', accent: '#7D8063', border: '#E7E3DA',
+    textSecondary: '#68645D', accent: '#7D8063', border: '#E7E3DA',
     danger: '#B4534B', success: '#58745C',
   },
   space: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 },

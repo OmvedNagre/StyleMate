@@ -1,12 +1,17 @@
 # StyleMate Project Status
 
 ## Current phase
-Phase 5 — Favorites and outfit history
+Phase 6 — Cross-platform testing, polish and reliability
 
 ## Overall status
-Completed favorites and repeat-wear workflow. Automated verification passes; native device acceptance remains pending. Phase 6 has not started.
+Reliability fixes and host verification completed. Phase 6 is NOT fully accepted: native testing remains pending because Xcode/simctl and Android SDK/adb are unavailable. See docs/DEVICE_TEST_MATRIX.md. Phase 7 has not started.
 
 ## Completed
+- Cleanup failures no longer block startup of an otherwise readable database.
+- Wear writes re-read persisted clothing inside the operation queue, rejecting deleted or category-invalid combinations.
+- Increased secondary-text contrast and removed unused fixed-outfit fixture.
+- Added missing-image, cleanup-failure and stale-wear regression tests.
+- Recorded device matrix and environment limitations.
 - Explicit Wear again confirmation, last-worn timestamps and duplicate submission guards.
 - Saved missing pieces retain names and disable wear recording; regeneration action provided.
 - Existing persistent favorites, newest-first snapshots and history-driven ranking retained.
@@ -18,9 +23,9 @@ Completed favorites and repeat-wear workflow. Automated verification passes; nat
 - Documented formulas, thresholds, worked example and limits in docs/RECOMMENDATIONS.md.
 
 ## Verification performed
-- 74 tests across engine, UI, image services and real host SQLite integration.
+- 77 tests across engine, UI, image services and real host SQLite integration.
 - Lint, JavaScript type checking, iOS/Android exports and Expo dependency checks.
-- Expo Doctor: 20/20 checks passed in Phase 4; dependencies/configuration unchanged in Phase 5.
+- Expo Doctor: 20/20 checks passed in Phase 6.
 - Tests cover deterministic ordering, component scores, optional categories, unknown attributes, repetition boundaries, ranking changes, empty wardrobe and bounded large wardrobe search.
 
 ## Known issues
@@ -38,4 +43,4 @@ Completed favorites and repeat-wear workflow. Automated verification passes; nat
 - Deliver on codex/project-foundation and push after phase checks per user instruction.
 
 ## Next action
-Phase 6 — cross-platform testing, polish and reliability. Execute outstanding native device checks when hardware is available.
+Execute docs/DEVICE_TEST_MATRIX.md on native devices/runtimes and resolve failures to finish Phase 6 acceptance. Phase 7 is documentation and viva readiness.
