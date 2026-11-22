@@ -13,13 +13,13 @@ export default function ClothingDetailsScreen() {
   const [error, setError] = useState('');
   const item = demo.items.find((entry) => entry.id === id);
   if (!item) return <Screen back title="Piece unavailable."><StateCard kind="error" title="We could not find this piece" description="It may have been removed or the demo reset." action="Open wardrobe" onAction={() => router.replace('/wardrobe')} /></Screen>;
-  const remove = () => Alert.alert('Remove this piece?', 'Its app-managed photo will be removed. The original gallery photo is untouched. History keeps its text snapshot.', [
+  const remove = () => Alert.alert('Remove this piece?', 'Its app-managed photo will be removed (cleanup retries later if needed). The original gallery photo is untouched. History keeps its text snapshot.', [
     { text: 'Keep piece', style: 'cancel' },
     { text: 'Remove', style: 'destructive', onPress: async () => {
       if (removing.current) return;
       removing.current = true; setBusy(true); setError('');
       try { await demo.deleteItem(item.id); router.replace('/wardrobe'); }
-      catch { setError('Could not remove the photo. The piece is still in your wardrobe. Try again.'); }
+      catch { setError('Could not remove this piece from storage. Please try again.'); }
       finally { removing.current = false; setBusy(false); }
     } },
   ]);

@@ -28,7 +28,8 @@
           "photosPermission": "Allow StyleMate to select clothing photos.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "platforms": [
       "ios",

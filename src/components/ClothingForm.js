@@ -72,7 +72,7 @@ export default function ClothingForm({ item }) {
     <Choices title="Seasons * · select one or more" values={seasons} selected={selectedSeasons} onSelect={(value) => setSeasons((current) => current.includes(value) ? current.filter((season) => season !== value) : [...current, value])} />
     {submitted && errors.seasons && <Text accessibilityRole="alert" style={ui.error}>Choose at least one season.</Text>}
     {submitted && Object.values(errors).some(Boolean) && <Text accessibilityRole="alert" style={ui.error}>Check the photo, name, and season fields above.</Text>}
-    <Text style={ui.caption}>Photos are copied into private app storage. Clothing records reset on restart until Phase 3; do not use this preview as your only wardrobe record.</Text>
+    <Text style={ui.caption}>Photos and clothing details are saved privately on this device.</Text>
     <Text accessibilityLiveRegion="polite" style={ui.error}>{error}</Text>
     <Button title={busy ? 'Please wait…' : item ? 'Update piece' : 'Add to wardrobe'} disabled={busy} onPress={save} />
   </Screen>;
