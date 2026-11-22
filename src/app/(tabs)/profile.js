@@ -12,11 +12,11 @@ export default function ProfileScreen() {
   const [preview, setPreview] = useState('none');
   const confirm = (clear = false) => Alert.alert(clear ? 'Empty the demo wardrobe?' : 'Restore the sample collection?', 'This changes only sample illustrations. Photo pieces, favorites, and history are preserved. Adding samples does not replace existing edits.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Continue', onPress: () => perform(clear ? demo.clear : demo.reset) }]);
   return <Screen title="Made for you." subtitle="Your wardrobe. Your rhythm. No account needed.">
-    <Button title={`Saved outfits · ${demo.saved ? 1 : 0}`} secondary onPress={() => router.push('/outfits/saved')} />
+    <Button title={`Saved outfits · ${demo.savedOutfits.length}`} secondary onPress={() => router.push('/outfits/saved')} />
     <Button title={`Outfit history · ${demo.history.length}`} secondary onPress={() => router.push('/outfits/history')} />
     <Choices title="Default style" values={['any', ...styles]} selected={demo.preferredStyle} onSelect={(value) => perform(() => demo.setPreferredStyle(value))} />
     <Text style={ui.caption}>Used when Discover first opens. Existing selections in an open Discover screen stay unchanged.</Text>
-    <View style={ui.card}><Text style={ui.heading}>A more considered everyday.</Text><Text style={ui.body}>StyleMate helps you rediscover the pieces you own. The planned app keeps your wardrobe on-device and explains outfit suggestions through simple rules.</Text><Text style={ui.caption}>Version 0.1.0 · Phase 3 local storage</Text></View>
+    <View style={ui.card}><Text style={ui.heading}>A more considered everyday.</Text><Text style={ui.body}>StyleMate helps you rediscover the pieces you own. The planned app keeps your wardrobe on-device and explains outfit suggestions through simple rules.</Text><Text style={ui.caption}>Version 0.1.0 · Phase 4 outfit recommendations</Text></View>
     <Text accessibilityLiveRegion="polite" style={ui.error}>{error}</Text>
     <Text style={ui.heading}>Explore the prototype</Text>
     <Button title="Restore demo collection" secondary onPress={() => confirm()} />

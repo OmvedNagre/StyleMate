@@ -15,17 +15,19 @@ import Saved from '../src/app/outfits/saved';
 import History from '../src/app/outfits/history';
 import NotFound from '../src/app/+not-found';
 import OutfitCard from '../src/components/OutfitCard';
+import { generateOutfits } from '../src/utils/recommendationEngine';
+import { sampleClothing } from '../src/demo/data';
 import { pickImage, persistImage } from '../src/services/imageService';
 import { Button } from '../src/components/ui';
 
 jest.mock('../src/services/database', () => {
   let state;
-  const fresh = () => ({ items: require('../src/demo/data').sampleClothing, saved: false, history: [], preferredStyle: 'any' });
+  const fresh = () => ({ items: require('../src/demo/data').sampleClothing, savedOutfits: [], history: [], preferredStyle: 'any' });
   const repo = {
     load: jest.fn(async () => state), cleanup: jest.fn(async () => {}),
     saveItem: jest.fn(async (item) => { state = { ...state, items: state.items.some((row) => row.id === item.id) ? state.items.map((row) => row.id === item.id ? item : row) : [item, ...state.items] }; }),
     deleteItem: jest.fn(async (id) => { state = { ...state, items: state.items.filter((item) => item.id !== id) }; }),
-    setFavorite: jest.fn(async (saved) => { state = { ...state, saved }; }),
+    setFavorite: jest.fn(async (outfit, saved) => { state = { ...state, savedOutfits: saved ? [...state.savedOutfits.filter((entry) => entry.id !== outfit.id), outfit] : state.savedOutfits.filter((entry) => entry.id !== outfit.id) }; }),
     markWorn: jest.fn(async (entry) => { state = { ...state, history: [entry, ...state.history] }; }),
     setStyle: jest.fn(async (preferredStyle) => { state = { ...state, preferredStyle }; }),
     addSamples: jest.fn(async () => { state = fresh(); }),
@@ -41,8 +43,9 @@ jest.mock('react-native-safe-area-context', () => ({ SafeAreaView: require('reac
 
 function Probe() {
   const demo = useDemo();
-  return <><Text testID="state">{JSON.stringify({ items: demo.items, saved: demo.saved, history: demo.history })}</Text><Button title="Clear fixture" onPress={demo.clear} /><Button title="Remove shirt fixture" onPress={() => demo.deleteItem('demo-shirt')} /></>;
+  return <><Text testID="state">{JSON.stringify({ items: demo.items, savedOutfits: demo.savedOutfits, history: demo.history })}</Text><Button title="Clear fixture" onPress={demo.clear} /><Button title="Remove shirt fixture" onPress={() => demo.deleteItem('demo-shirt')} /></>;
 }
+const fixtureOutfit = generateOutfits(sampleClothing, {}, [], Date.parse('2026-11-22T12:00:00Z')).outfits[0];
 const mount = async (component) => { const result = await render(<DemoProvider>{component}<Probe /></DemoProvider>); await waitFor(() => expect(screen.getByTestId('state')).toBeTruthy()); return result; };
 const state = () => JSON.parse(screen.getByTestId('state').props.children);
 beforeEach(() => { jest.clearAllMocks(); require('../src/services/database').resetFixture(); });
@@ -86,25 +89,25 @@ test('edit updates the same record and does not duplicate it', async () => {
   expect(state().items.find((item) => item.id === 'demo-shirt').name).toBe('Edited shirt');
 });
 
-test('Discover carries selections to the fixed preview', async () => {
+test('Discover carries selections to the generator', async () => {
   await mount(<Discover />);
   await fireEvent.press(screen.getByLabelText('Weather · selected by you: Cold'));
-  await fireEvent.press(screen.getByText('Preview sample outfit'));
+  await fireEvent.press(screen.getByText('Generate outfits'));
   expect(router.push).toHaveBeenCalledWith({ pathname: '/outfits/results', params: { occasion: 'college', weather: 'cold', style: 'any', footwear: 'any' } });
 });
 
 test('favorites toggle and worn history is a single preserved snapshot', async () => {
-  await mount(<OutfitCard />);
-  await fireEvent.press(screen.getByText('Save demo outfit'));
-  expect(state().saved).toBe(true);
-  await fireEvent.press(screen.getByText('Remove from demo favorites'));
-  expect(state().saved).toBe(false);
-  await fireEvent.press(screen.getByText('Mark demo outfit as worn'));
-  await fireEvent.press(screen.getByText('Marked worn in this demo'));
+  await mount(<OutfitCard outfit={fixtureOutfit} />);
+  await fireEvent.press(screen.getByText('Save outfit'));
+  expect(state().savedOutfits).toHaveLength(1);
+  await fireEvent.press(screen.getByText('Remove from favorites'));
+  expect(state().savedOutfits).toHaveLength(0);
+  await fireEvent.press(screen.getByText('Mark as worn'));
+  await fireEvent.press(screen.getByText('Marked worn this session'));
   expect(state().history).toHaveLength(1);
   await fireEvent.press(screen.getByText('Remove shirt fixture'));
-  expect(state().history[0].items[0].name).toBe('The everyday shirt');
-  expect(screen.getByText(/An item in this sample outfit was removed/)).toBeTruthy();
+  expect(state().history[0].items).toEqual(fixtureOutfit.items);
+  expect(screen.getByText(/An item in this outfit is no longer available/)).toBeTruthy();
 });
 
 test('delete asks for confirmation before changing the collection', async () => {
@@ -119,8 +122,8 @@ test('delete asks for confirmation before changing the collection', async () => 
 test('empty wardrobe and incomplete sample results are honest', async () => {
   await mount(<Results />);
   await fireEvent.press(screen.getByText('Clear fixture'));
-  expect(screen.getByText('The sample look is incomplete')).toBeTruthy();
-  expect(screen.queryByText(/Example score/)).toBeNull();
+  expect(screen.getByText('A few more pieces to work with')).toBeTruthy();
+  expect(screen.queryByText(/Score ·/)).toBeNull();
 });
 
 
@@ -178,11 +181,11 @@ test('database save failure cleans up the new copy and retains existing records'
 
 test('favorite write failure does not show a saved state', async () => {
   const repository = await require('../src/services/database').getRepository();
-  await mount(<OutfitCard />);
+  await mount(<OutfitCard outfit={fixtureOutfit} />);
   repository.setFavorite.mockRejectedValueOnce(new Error('Database locked'));
-  await fireEvent.press(screen.getByText('Save demo outfit'));
-  expect(state().saved).toBe(false);
+  await fireEvent.press(screen.getByText('Save outfit'));
+  expect(state().savedOutfits).toHaveLength(0);
   expect(screen.getByText('Could not store this change. Please try again.')).toBeTruthy();
-  await fireEvent.press(screen.getByText('Save demo outfit'));
-  expect(state().saved).toBe(true);
+  await fireEvent.press(screen.getByText('Save outfit'));
+  expect(state().savedOutfits).toHaveLength(1);
 });

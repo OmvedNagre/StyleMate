@@ -13,7 +13,7 @@ export function Screen({ children, title, subtitle, back = false }) {
         <Text style={ui.eyebrow}>STYLEMATE / YOUR EVERYDAY EDIT</Text>
         <Text accessibilityRole="header" style={ui.title}>{title}</Text>
         {subtitle && <Text style={ui.body}>{subtitle}</Text>}
-        <View style={ui.notice}><Text style={ui.caption}>LOCAL WARDROBE · Your collection is saved on this device. Sample illustrations and outfit previews are labeled as demo content.</Text></View>
+        <View style={ui.notice}><Text style={ui.caption}>LOCAL WARDROBE · Your collection is saved on this device. Sample illustrations are labeled. Outfit scores use local, explainable rules.</Text></View>
         {children}
       </ScrollView>
     </KeyboardAvoidingView>

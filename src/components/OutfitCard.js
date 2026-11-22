@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import { Text, View } from 'react-native';
-import { sampleOutfit } from '../demo/data';
 import { useDemo } from '../demo/DemoContext';
 import { ClothingGrid } from './ClothingCard';
 import { Button, ui } from './ui';
 
-export default function OutfitCard() {
+/** @param {{outfit: import('../utils/recommendationEngine').Outfit}} props */
+export default function OutfitCard({ outfit }) {
   const demo = useDemo();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -17,18 +17,20 @@ export default function OutfitCard() {
     try { await action(); } catch { setError('Could not store this change. Please try again.'); }
     finally { lock.current = false; setBusy(false); }
   };
-  const items = sampleOutfit.clothingIds.flatMap((id) => demo.items.filter((item) => item.id === id));
-  const complete = items.length === sampleOutfit.clothingIds.length;
+  const items = outfit.clothingIds.flatMap((id) => demo.items.filter((item) => item.id === id));
+  const complete = items.length === outfit.clothingIds.length;
+  const saved = demo.savedOutfits.some((entry) => entry.id === outfit.id);
+  const worn = demo.wornIds.includes(outfit.id);
   return <View style={ui.card}>
-    <Text style={ui.caption}>FIXED LAYOUT EXAMPLE · NOT A GENERATED RESULT</Text>
-    <Text accessibilityRole="header" style={ui.heading}>{sampleOutfit.name}</Text>
-    <Text style={ui.label}>Example score · {sampleOutfit.score}/100</Text>
+    <Text style={ui.caption}>{outfit.legacy ? 'LEGACY SAMPLE · ILLUSTRATIVE SCORE' : 'RULE-BASED OUTFIT · SCORED AT GENERATION'}</Text>
+    <Text accessibilityRole="header" style={ui.heading}>{outfit.name}</Text>
+    <Text style={ui.label}>Score · {outfit.score}/100</Text>
     <ClothingGrid items={items} />
-    {!complete && <Text style={ui.error}>An item in this sample outfit was removed. Restore demo data from Profile to see the full look.</Text>}
-    <Text style={ui.caption}>Illustrative explanations, unchanged by edits or preferences:</Text>
-    {sampleOutfit.reasons.map((reason) => <Text key={reason} style={ui.body}>{reason}</Text>)}
+    {!complete && <Text style={ui.error}>An item in this outfit is no longer available. You can remove it from favorites or generate a new outfit.</Text>}
+    <Text style={ui.caption}>Score and explanations are a snapshot. Regenerate after changing clothing attributes.</Text>
+    {outfit.reasons.map((reason) => <Text key={reason} style={ui.body}>{reason}</Text>)}
     <Text accessibilityLiveRegion="polite" style={ui.error}>{error}</Text>
-    <Button title={demo.saved ? 'Remove from demo favorites' : 'Save demo outfit'} onPress={() => perform(demo.toggleSaved)} disabled={busy} secondary />
-    <Button title={demo.worn ? 'Marked worn in this demo' : 'Mark demo outfit as worn'} disabled={busy || demo.worn || !complete} onPress={() => perform(() => demo.markWorn(items))} />
+    <Button title={saved ? 'Remove from favorites' : 'Save outfit'} onPress={() => perform(() => demo.toggleSaved(outfit))} disabled={busy} secondary />
+    <Button title={worn ? 'Marked worn this session' : 'Mark as worn'} disabled={busy || worn || !complete || outfit.legacy} onPress={() => perform(() => demo.markWorn({ ...outfit, items }))} />
   </View>;
 }

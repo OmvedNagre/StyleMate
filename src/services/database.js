@@ -1,8 +1,9 @@
 import { openDatabaseAsync } from 'expo-sqlite';
-import { sampleClothing, sampleOutfit } from '../demo/data';
+import { sampleClothing } from '../demo/data';
 
 /** @typedef {import('../demo/data').Clothing} Clothing */
-/** @typedef {{id: string, wornAt: string, items: Clothing[]}} WearEntry */
+/** @typedef {{id: string, wornAt: string, items: Clothing[], outfitId?: string}} WearEntry */
+/** @typedef {import('../utils/recommendationEngine').Outfit} Outfit */
 /** @param {import('expo-sqlite').SQLiteDatabase} db */
 export function createRepository(db) {
   return {
@@ -34,13 +35,13 @@ export function createRepository(db) {
     },
     async load() {
       const rows = await db.getAllAsync('SELECT * FROM clothing ORDER BY created_at DESC, id ASC');
-      const outfit = await db.getFirstAsync('SELECT is_favorite FROM outfits WHERE id = ?', sampleOutfit.id);
-      const history = await db.getAllAsync('SELECT id, outfit_snapshot_json, worn_at FROM outfit_history ORDER BY worn_at DESC, id DESC');
+      const outfits = await db.getAllAsync('SELECT snapshot_json FROM outfits WHERE is_favorite = 1 ORDER BY updated_at DESC, id ASC');
+      const history = await db.getAllAsync('SELECT id, outfit_id, outfit_snapshot_json, worn_at FROM outfit_history ORDER BY worn_at DESC, id DESC');
       const setting = await db.getFirstAsync('SELECT value FROM settings WHERE key = ?', 'preferredStyle');
       return {
         items: rows.map((row) => /** @type {Clothing} */ ({ id: row.id, name: row.name, imageUri: row.image_uri ?? undefined, category: row.category, itemType: row.item_type, color: row.color, style: row.style, pattern: row.pattern, seasons: JSON.parse(row.seasons_json), image: row.illustration })),
-        saved: !!outfit?.is_favorite,
-        history: history.map((row) => /** @type {WearEntry} */ ({ id: row.id, wornAt: row.worn_at, items: JSON.parse(row.outfit_snapshot_json) })),
+        savedOutfits: outfits.map((row) => { const snapshot = JSON.parse(row.snapshot_json); return /** @type {Outfit} */ ({ ...snapshot, items: snapshot.items ?? [], legacy: snapshot.id === 'demo-outfit' }); }),
+        history: history.map((row) => /** @type {WearEntry} */ ({ id: row.id, outfitId: row.outfit_id, wornAt: row.worn_at, items: JSON.parse(row.outfit_snapshot_json) })),
         preferredStyle: setting?.value ?? 'any',
       };
     },
@@ -66,15 +67,15 @@ export function createRepository(db) {
         await tx.runAsync('DELETE FROM clothing WHERE id = ?', id);
       });
     },
-    /** @param {boolean} saved */
-    async setFavorite(saved) {
-      await db.runAsync(`INSERT INTO outfits VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET is_favorite=excluded.is_favorite, updated_at=excluded.updated_at`, sampleOutfit.id, JSON.stringify(sampleOutfit), saved ? 1 : 0, new Date().toISOString());
+    /** @param {Outfit} outfit @param {boolean} saved */
+    async setFavorite(outfit, saved) {
+      await db.runAsync(`INSERT INTO outfits VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET snapshot_json=excluded.snapshot_json, is_favorite=excluded.is_favorite, updated_at=excluded.updated_at`, outfit.id, JSON.stringify(outfit), saved ? 1 : 0, new Date().toISOString());
     },
-    /** @param {WearEntry} entry */
-    async markWorn(entry) {
+    /** @param {WearEntry} entry @param {Outfit} outfit */
+    async markWorn(entry, outfit) {
       await db.withExclusiveTransactionAsync(async (tx) => {
-        await tx.runAsync('INSERT OR IGNORE INTO outfits VALUES (?, ?, 0, ?)', sampleOutfit.id, JSON.stringify(sampleOutfit), entry.wornAt);
-        await tx.runAsync('INSERT OR IGNORE INTO outfit_history VALUES (?, ?, ?, ?)', entry.id, sampleOutfit.id, JSON.stringify(entry.items), entry.wornAt);
+        await tx.runAsync('INSERT OR IGNORE INTO outfits VALUES (?, ?, 0, ?)', outfit.id, JSON.stringify(outfit), entry.wornAt);
+        await tx.runAsync('INSERT OR IGNORE INTO outfit_history VALUES (?, ?, ?, ?)', entry.id, outfit.id, JSON.stringify(entry.items), entry.wornAt);
       });
     },
     /** @param {string} style */

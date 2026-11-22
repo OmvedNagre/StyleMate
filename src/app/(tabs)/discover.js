@@ -16,7 +16,7 @@ export default function DiscoverScreen() {
     <Choices title="Weather · selected by you" values={weather} selected={condition} onSelect={setCondition} />
     <Choices title="Your preferred style" values={['any', ...styles]} selected={style} onSelect={setStyle} />
     <Choices title="Footwear" values={['any', 'sneakers', 'formalShoes', 'boots', 'sandals']} selected={footwear} onSelect={setFootwear} />
-    <Text style={ui.caption}>This preview carries your choices to the results screen. It shows one fixed sample; selections do not generate or rank outfits yet.</Text>
-    <Button title="Preview sample outfit" onPress={() => router.push({ pathname: '/outfits/results', params: { occasion, weather: condition, style, footwear } })} />
+    <Text style={ui.caption}>Find up to three combinations from your wardrobe, scored locally using occasion, color, weather, style, and recent wear.</Text>
+    <Button title="Generate outfits" onPress={() => router.push({ pathname: '/outfits/results', params: { occasion, weather: condition, style, footwear } })} />
   </Screen>;
 }

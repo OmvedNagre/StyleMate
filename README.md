@@ -4,9 +4,9 @@ A personal smart wardrobe assistant for iOS and Android, built with JavaScript, 
 
 ## Current build
 
-Phase 3 local storage: clothing details, photo references, favorites, wear-history snapshots, and the default style are saved in SQLite on the device. Camera/gallery photos live in private app documents storage. The wardrobe loads saved records at startup and offers Retry if opening storage fails; it never resets the database to recover from an error.
+Phase 4 recommendations and local storage: clothing details, photo references, favorites, wear-history snapshots, and the default style are saved in SQLite on the device. Camera/gallery photos live in private app documents storage. The wardrobe loads saved records at startup and offers Retry if opening storage fails; it never resets the database to recover from an error.
 
-Fresh installs start empty. Add your own clothing, or explicitly add the five labeled sample illustrations from Profile to explore the fixed outfit preview. Sample controls preserve photo pieces, favorites, and history. Discover still displays one fixed example with an illustrative score; the recommendation engine is Phase 4.
+Fresh installs start empty. Add your own clothing, or explicitly add the five labeled sample illustrations from Profile to explore recommendations. Sample controls preserve photo pieces, favorites, and history. Discover now generates up to three actual combinations with rule-based scores and explanations. See [recommendation rules](docs/RECOMMENDATIONS.md).
 
 Database persistence has been tested by closing and reopening a real SQLite file on the development host. Actual iOS/Android restart and image loading are still awaiting device verification. Records from Phase 2 were in memory and cannot be recovered after they were lost; legacy unreferenced photos are not automatically deleted.
 
@@ -65,8 +65,8 @@ Try this prototype flow:
 1. A fresh install shows an empty wardrobe. In Profile, add sample pieces if desired; filter Wardrobe by Footwear, then Accessory to see an empty category.
 2. Add a piece; submit empty fields to see validation, then take or select a photo and enter its name.
 3. Open its details, edit it, then try removal (with confirmation).
-4. Choose occasion/weather/style in Discover and open the fixed preview.
-5. Save the demo outfit, mark it worn, then inspect Saved Outfits and History from Profile.
+4. Choose occasion/weather/style in Discover and generate outfits.
+5. Save a generated outfit, mark it worn, then inspect Saved Outfits and History from Profile.
 6. Remove a sample item and verify saved outfits explain its absence while history retains its snapshot.
 7. In Profile, restore the collection, hide sample pieces, and inspect loading/error previews.
 8. On a small device and with enlarged text, verify wrapping, scrolling, and keyboard reachability on the form.
@@ -80,7 +80,7 @@ Phase 2 device checklist (not yet executed): test capture on real iOS/Android de
 The schema uses `PRAGMA user_version = 1`, WAL, foreign keys and exclusive transactions for operations that change multiple records. User values are parameterized. The tables are:
 
 - `clothing`: stable text ID, manual attributes, photo URI or sample illustration, seasons JSON, and timestamps.
-- `outfits`: outfit snapshot JSON and favorite state (the fixed sample in this phase).
+- `outfits`: outfit snapshot JSON and favorite state (generated combinations and legacy samples).
 - `outfit_history`: timestamped item snapshots, linked to an outfit with `ON DELETE SET NULL`.
 - `settings`: default style.
 - `image_cleanup`: old photo URIs waiting for safe deletion.
@@ -91,4 +91,4 @@ A process crash between photo copy and database commit can leave an unreferenced
 
 Phase 3 device checklist: add a real photo, edit its attributes, save the sample outfit and mark it worn, terminate/reopen the app, verify all records/images, replace/delete the photo, reopen again, and verify favorites/history still render. Test SQLite error/retry and storage failures on test devices. These native checks remain pending.
 
-Next: Phase 4 — deterministic, explainable outfit recommendations.
+Next: Phase 5 — favorites and wear-history workflow polish.

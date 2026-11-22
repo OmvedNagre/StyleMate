@@ -4,21 +4,22 @@ import { getRepository } from '../services/database';
 import { Screen, StateCard } from '../components/ui';
 
 /** @typedef {import('./data').Clothing} Clothing */
-/** @typedef {{id: string, wornAt: string, items: Clothing[]}} WearEntry */
-/** @typedef {{items: Clothing[], saved: boolean, history: WearEntry[], preferredStyle: string}} StoredState */
-/** @typedef {StoredState & {worn: boolean, setPreferredStyle: (value: string) => Promise<void>, saveItem: (item: Clothing) => Promise<void>, deleteItem: (id: string) => Promise<void>, toggleSaved: () => Promise<void>, markWorn: (items: Clothing[]) => Promise<void>, reset: () => Promise<void>, clear: () => Promise<void>}} WardrobeState */
+/** @typedef {{id: string, wornAt: string, items: Clothing[], outfitId?: string}} WearEntry */
+/** @typedef {import('../utils/recommendationEngine').Outfit} Outfit */
+/** @typedef {{items: Clothing[], savedOutfits: Outfit[], history: WearEntry[], preferredStyle: string}} StoredState */
+/** @typedef {StoredState & {wornIds: string[], setPreferredStyle: (value: string) => Promise<void>, saveItem: (item: Clothing) => Promise<void>, deleteItem: (id: string) => Promise<void>, toggleSaved: (outfit: Outfit) => Promise<void>, markWorn: (outfit: Outfit) => Promise<void>, reset: () => Promise<void>, clear: () => Promise<void>}} WardrobeState */
 const DemoContext = createContext(/** @type {WardrobeState | null} */ (null));
 
 /** Historical name retained for route compatibility; state is now backed by SQLite.
  * @param {{children: import('react').ReactNode}} props */
 export function DemoProvider({ children }) {
-  const [state, setState] = useState(/** @type {StoredState} */ ({ items: [], saved: false, history: [], preferredStyle: 'any' }));
+  const [state, setState] = useState(/** @type {StoredState} */ ({ items: [], savedOutfits: [], history: [], preferredStyle: 'any' }));
   const current = useRef(state);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
-  const [worn, setWorn] = useState(false);
-  const wearLock = useRef(false);
+  const [wornIds, setWornIds] = useState(/** @type {string[]} */ ([]));
+  const wearLock = useRef(new Set());
   const queue = useRef(Promise.resolve());
   useEffect(() => {
     let active = true;
@@ -47,7 +48,7 @@ export function DemoProvider({ children }) {
     return next;
   };
   if (error || !ready) return <Screen title="Your wardrobe."><StateCard kind={error ? 'error' : 'loading'} title={error ? 'Storage needs attention' : 'Opening your collection'} description={error || 'Reading your wardrobe from this device.'} action={error ? 'Retry' : undefined} onAction={error ? () => { setError(''); setReady(false); setAttempt((value) => value + 1); } : undefined} /></Screen>;
-  return <DemoContext.Provider value={{ ...state, worn,
+  return <DemoContext.Provider value={{ ...state, wornIds,
     saveItem: (item) => mutate(async (repository) => {
       const previous = current.current.items.find((entry) => entry.id === item.id);
       let imageUri = item.imageUri;
@@ -60,16 +61,16 @@ export function DemoProvider({ children }) {
       }
     }),
     deleteItem: (id) => mutate((repository) => repository.deleteItem(id)),
-    toggleSaved: () => mutate((repository) => repository.setFavorite(!current.current.saved)),
+    toggleSaved: (outfit) => mutate((repository) => repository.setFavorite(outfit, !current.current.savedOutfits.some((entry) => entry.id === outfit.id))),
     setPreferredStyle: (value) => mutate((repository) => repository.setStyle(value)),
-    markWorn: async (items) => {
-      if (wearLock.current) return;
-      wearLock.current = true;
+    markWorn: async (outfit) => {
+      if (wearLock.current.has(outfit.id)) return;
+      wearLock.current.add(outfit.id);
       const wornAt = new Date().toISOString();
       try {
-        await mutate((repository) => repository.markWorn({ id: `wear-${Date.now()}-${Math.random().toString(36).slice(2)}`, wornAt, items: items.map((item) => ({ ...item, seasons: [...item.seasons] })) }));
-        setWorn(true);
-      } catch (error) { wearLock.current = false; throw error; }
+        await mutate((repository) => repository.markWorn({ id: `wear-${Date.now()}-${Math.random().toString(36).slice(2)}`, wornAt, outfitId: outfit.id, items: outfit.items.map((item) => ({ ...item, seasons: [...item.seasons] })) }, outfit));
+        setWornIds((ids) => [...ids, outfit.id]);
+      } catch (error) { wearLock.current.delete(outfit.id); throw error; }
     },
     reset: () => mutate((repository) => repository.addSamples()),
     clear: () => mutate((repository) => repository.hideSamples()),

@@ -4,7 +4,10 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRepository } from '../src/services/database';
+import { generateOutfits } from '../src/utils/recommendationEngine';
 import { sampleClothing } from '../src/demo/data';
+
+const outfit = generateOutfits(sampleClothing, {}, [], Date.parse('2026-11-22T12:00:00Z')).outfits[0];
 
 jest.mock('expo-sqlite', () => ({ openDatabaseAsync: jest.fn() }));
 let folder;
@@ -40,13 +43,13 @@ test('fresh database is empty; migration is repeatable and rejects future schema
 test('clothing, favorites, history and preferences survive a real database close/reopen', async () => {
   const item = { ...sampleClothing[0], id: 'user-1', name: "Alice's shirt; DROP TABLE clothing;--", imageUri: 'file:///documents/wardrobe/clothing-a.jpg' };
   await repo.saveItem(item);
-  await repo.setFavorite(true);
-  await repo.markWorn({ id: 'wear-1', wornAt: '2026-11-22T10:00:00Z', items: [item] });
+  await repo.setFavorite(outfit, true);
+  await repo.markWorn({ id: 'wear-1', wornAt: '2026-11-22T10:00:00Z', items: [item] }, outfit);
   await repo.setStyle('formal');
   native.close(); open(); await repo.initialize();
   const loaded = await repo.load();
   expect(loaded.items).toEqual([item]);
-  expect(loaded.saved).toBe(true);
+  expect(loaded.savedOutfits[0]).toMatchObject(outfit);
   expect(loaded.preferredStyle).toBe('formal');
   expect(loaded.history[0].items).toEqual([item]);
 });
@@ -80,13 +83,13 @@ test('transaction rollback retains the old record and does not queue its photo',
 test('history survives item deletion, deduplicates a repeated request and orders newest first', async () => {
   await repo.saveItem(sampleClothing[0]);
   const entry = { id: 'first', wornAt: '2026-11-21T10:00:00Z', items: [sampleClothing[0]] };
-  await repo.markWorn(entry); await repo.markWorn(entry);
-  await repo.markWorn({ ...entry, id: 'second', wornAt: '2026-11-22T10:00:00Z' });
+  await repo.markWorn(entry, outfit); await repo.markWorn(entry, outfit);
+  await repo.markWorn({ ...entry, id: 'second', wornAt: '2026-11-22T10:00:00Z' }, outfit);
   await repo.deleteItem(sampleClothing[0].id);
   expect((await repo.load()).history.map((row) => row.id)).toEqual(['second', 'first']);
   expect((await repo.load()).history[0].items).toEqual(entry.items);
-  await repo.setFavorite(true); await repo.setFavorite(false);
-  expect((await repo.load()).saved).toBe(false);
+  await repo.setFavorite(outfit, true); await repo.setFavorite(outfit, false);
+  expect((await repo.load()).savedOutfits).toEqual([]);
 });
 
 test('sample controls preserve user photos and do not replace existing edits', async () => {
