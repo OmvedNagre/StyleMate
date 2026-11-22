@@ -1,12 +1,16 @@
 # StyleMate Project Status
 
 ## Current phase
-Phase 6 — Cross-platform testing, polish and reliability
+Phase 7 — Documentation and viva readiness
 
 ## Overall status
-Reliability fixes and host verification completed. Phase 6 is NOT fully accepted: native testing remains pending because Xcode/simctl and Android SDK/adb are unavailable. See docs/DEVICE_TEST_MATRIX.md. Phase 7 has not started.
+Phase 7 documentation is prepared and checked against the implementation. The initial release is NOT fully accepted: Phase 6 native testing remains pending because Xcode/simctl and Android SDK/adb are unavailable. See docs/DEVICE_TEST_MATRIX.md.
 
 ## Completed
+- README setup/run/test guidance, feature summary, documentation links and honest screenshot/future-scope notes.
+- Architecture, table design, image coordination and failure/recovery documentation.
+- Worked scoring example, 5–10 minute demo script and 20 viva questions/answers.
+- No fabricated screenshots or claims of completed native testing.
 - Cleanup failures no longer block startup of an otherwise readable database.
 - Wear writes re-read persisted clothing inside the operation queue, rejecting deleted or category-invalid combinations.
 - Increased secondary-text contrast and removed unused fixed-outfit fixture.
@@ -43,4 +47,4 @@ Reliability fixes and host verification completed. Phase 6 is NOT fully accepted
 - Deliver on codex/project-foundation and push after phase checks per user instruction.
 
 ## Next action
-Execute docs/DEVICE_TEST_MATRIX.md on native devices/runtimes and resolve failures to finish Phase 6 acceptance. Phase 7 is documentation and viva readiness.
+Execute docs/DEVICE_TEST_MATRIX.md on native devices/runtimes and resolve failures to finish Phase 6 acceptance. Use docs/DEMO_AND_VIVA.md for the demonstration once device checks pass.

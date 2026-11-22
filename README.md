@@ -2,15 +2,27 @@
 
 A personal smart wardrobe assistant for iOS and Android, built with JavaScript, React Native, and Expo Router.
 
+## Problem and features
+
+People can overlook clothes they own or repeat combinations while deciding what to wear. StyleMate combines a photo wardrobe, manual attributes, deterministic outfit suggestions, favorites and wear history in one local app.
+
+## Documentation
+
+- [Architecture and storage](docs/ARCHITECTURE.md)
+- [Recommendation rules](docs/RECOMMENDATIONS.md)
+- [Demo script and viva answers](docs/DEMO_AND_VIVA.md)
+- [Native verification matrix](docs/DEVICE_TEST_MATRIX.md)
+- [Project status and limitations](PROJECT_STATUS.md)
+
 ## Current build
 
-Phase 5 favorites, wear history, recommendations and local storage: clothing details, photo references, favorites, wear-history snapshots, and the default style are saved in SQLite on the device. Camera/gallery photos live in private app documents storage. The wardrobe loads saved records at startup and offers Retry if opening storage fails; it never resets the database to recover from an error.
+Implemented features: clothing details, photo references, favorites, wear-history snapshots, and the default style are saved in SQLite on the device. Camera/gallery photos live in private app documents storage. The wardrobe loads saved records at startup and offers Retry if opening storage fails; it never resets the database to recover from an error.
 
 Fresh installs start empty. Add your own clothing, or explicitly add the five labeled sample illustrations from Profile to explore recommendations. Sample controls preserve photo pieces, favorites, and history. Discover now generates up to three actual combinations with rule-based scores and explanations. See [recommendation rules](docs/RECOMMENDATIONS.md).
 
 Database persistence has been tested by closing and reopening a real SQLite file on the development host. Actual iOS/Android restart and image loading are still awaiting device verification. Records from Phase 2 were in memory and cannot be recovered after they were lost; legacy unreferenced photos are not automatically deleted.
 
-The planned product keeps clothing photos and SQLite data on-device, uses manually entered attributes and weather, and suggests outfits with deterministic rules. No backend, account, or AI service is required.
+The application keeps clothing photos and SQLite data on-device, uses manually entered attributes and weather, and suggests outfits with deterministic rules. No backend, account, or AI service is required.
 
 ## Setup
 
@@ -91,7 +103,7 @@ A process crash between photo copy and database commit can leave an unreferenced
 
 Phase 3 device checklist: add a real photo, edit its attributes, save the sample outfit and mark it worn, terminate/reopen the app, verify all records/images, replace/delete the photo, reopen again, and verify favorites/history still render. Test SQLite error/retry and storage failures on test devices. These native checks remain pending.
 
-Next: Phase 6 — cross-platform testing, polish and reliability.
+Release acceptance remains pending the Phase 6 native device checks.
 
 ## Favorites and wear history
 
@@ -100,3 +112,7 @@ Save or remove each generated outfit independently. Saved cards retain generatio
 Mark as worn records the current clothing details and time. Previously worn outfits show the last wear date and a Wear again action, including after restart. Another entry requires confirmation. Cancelling adds nothing; in-flight locks prevent duplicate submissions. History remains newest first, retains text after deletion, and influences recommendation ranking.
 
 Phase 6 reliability review: see [native test matrix](docs/DEVICE_TEST_MATRIX.md). Host verification is complete; native acceptance remains pending.
+
+## Screenshots and future scope
+
+No actual app screenshots are included because native visual verification has not been performed. Sample garment illustrations are not screenshots or real clothing photos. AI recognition may be considered only in a separately approved future phase; it is not implemented. There is no cloud backup, login, automatic weather service or analytics.
