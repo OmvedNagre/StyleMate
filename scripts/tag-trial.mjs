@@ -43,11 +43,18 @@ createServer(async (req, res) => {
         generationConfig: { responseMimeType: 'application/json', responseJsonSchema: schema },
       }),
     });
-    if (!response.ok) return reply(response.status === 429 ? 429 : 502, {});
+    if (!response.ok) {
+      const failure = await response.json().catch(() => null);
+      if (response.status === 403 && /free tier is not available for this project/i.test(failure?.error?.message ?? '')) {
+        return reply(403, { code: 'project_unavailable' });
+      }
+      if ([401, 403].includes(response.status)) return reply(403, { code: 'access_denied' });
+      return reply(response.status === 429 ? 429 : 502, {});
+    }
     const result = await response.json();
     const raw = JSON.parse(result.candidates?.[0]?.content?.parts?.find((part) => part.text)?.text ?? '{}');
     const clean = Object.fromEntries(Object.entries(tags).filter(([name, valid]) => valid.includes(raw[name])).map(([name]) => [name, raw[name]]));
     if (!types[clean.category]?.includes(clean.itemType)) delete clean.itemType;
     reply(200, clean);
-  } catch { reply(502, {}); }
+  } catch (error) { reply(error.name === 'TimeoutError' ? 504 : 502, {}); }
 }).listen(8787, process.env.STYLEMATE_TRIAL_HOST || '127.0.0.1', () => console.log('StyleMate tagging trial listening on port 8787'));
