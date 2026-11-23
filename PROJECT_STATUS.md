@@ -54,3 +54,9 @@ Execute docs/DEVICE_TEST_MATRIX.md on native devices/runtimes and resolve failur
 Added first-launch onboarding, icon-only Lucide tabs with accessibility labels, updated Home and wardrobe, and Omved's local profile with live counts. Smart casual is the initial style preference. Tag edits reuse the existing wardrobe editor. AI tagging remains a separate trial. Native swipe, navigation and visual checks remain pending on iPhone.
 
 Revamp verification: 80 tests, lint, JavaScript type checking, and both mobile bundle exports passed.
+
+## Optional tagging trial
+
+The UI revamp was confirmed working on the user's iPhone. New clothing forms tuck optional details behind an expandable section. The development-only Gemini trial proposes editable visual tags after an explicit photo submission. README documents setup and the comparison with manual entry. The rule engine reads the saved tags as before.
+
+Lint, type checking and 80 tests passed. Both mobile exports and an iOS development export with the trial enabled succeeded. A simulated Gemini reply verified schema-value and category/type filtering. Live Gemini and iPhone trial measurements require the user's private server key and garment photos.

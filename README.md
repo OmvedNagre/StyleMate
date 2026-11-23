@@ -116,3 +116,14 @@ Phase 6 reliability review: see [native test matrix](docs/DEVICE_TEST_MATRIX.md)
 ## Screenshots and future scope
 
 No actual app screenshots are included because native visual verification has not been performed. Sample garment illustrations are not screenshots or real clothing photos. AI recognition may be considered only in a separately approved future phase; it is not implemented. There is no cloud backup, login, automatic weather service or analytics.
+
+## Optional Gemini tagging trial
+
+The trial runs in development and uploads a photo only when you choose **Suggest tags**. Review or discard the suggested category/type, color and pattern, then edit and save as usual. Style and season remain manual. Use garment-only test photos. Google may use free-tier inputs to improve its products. See [Gemini pricing and data use](https://aistudio.google.com/docs/pricing#gemini-3.1-flash-lite).
+
+1. Create a [Google AI Studio API key](https://aistudio.google.com/api-keys). Put `GEMINI_API_KEY=...` in an untracked `.env.local` file. Keep the key server-side. Never prefix it with `EXPO_PUBLIC_`.
+2. Run `node --env-file=.env.local scripts/tag-trial.mjs`. It listens on loopback port 8787 by default. For an iPhone on trusted Wi-Fi, set `STYLEMATE_TRIAL_HOST` to your Mac's LAN IPv4 address when starting the server. This experimental service is for a private network and should not be exposed publicly.
+3. Set `EXPO_PUBLIC_STYLEMATE_TAG_URL` to the server origin (for example, `http://192.168.1.10:8787`, using your Mac's actual IP). Restart Expo with `npm start -- --clear --lan`. Omit the URL for manual-only operation.
+4. Compare manual and assisted entry on 10–20 photos. Record time to save, corrected tags, and missing suggestions. Try an ambiguous photo, a failed request, and an offline save. Trial photos are limited to 5 MB and supported image formats.
+
+Recommendations continue to use the local rule engine and the tags you save.
