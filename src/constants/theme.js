@@ -1,5 +1,5 @@
 export const theme = {
-  colors: {
+  colors: { brand: '#28483A', tint: '#E3EBE1',
     background: '#F7F5F0', surface: '#FFFFFF', textPrimary: '#20201E',
     textSecondary: '#68645D', accent: '#7D8063', border: '#E7E3DA',
     danger: '#B4534B', success: '#58745C',

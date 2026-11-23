@@ -10,10 +10,8 @@ export function Screen({ children, title, subtitle, back = false }) {
     <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={ui.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {back && <Button title="‹ Back" secondary onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />}
-        <Text style={ui.eyebrow}>STYLEMATE / YOUR EVERYDAY EDIT</Text>
         <Text accessibilityRole="header" style={ui.title}>{title}</Text>
         {subtitle && <Text style={ui.body}>{subtitle}</Text>}
-        <View style={ui.notice}><Text style={ui.caption}>LOCAL WARDROBE · Your collection is saved on this device. Sample illustrations are labeled. Outfit scores use local, explainable rules.</Text></View>
         {children}
       </ScrollView>
     </KeyboardAvoidingView>
@@ -54,7 +52,7 @@ export const ui = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.colors.background },
   content: { padding: theme.space.xl, gap: theme.space.xl, flexGrow: 1, maxWidth: 680, width: '100%', alignSelf: 'center' },
   eyebrow: { color: theme.colors.textSecondary, fontSize: theme.font.caption, letterSpacing: 1.5, marginTop: theme.space.sm },
-  title: { color: theme.colors.textPrimary, fontSize: theme.font.heading, fontWeight: '600', letterSpacing: -1 },
+  title: { color: theme.colors.textPrimary, fontSize: theme.font.heading, fontWeight: '700', letterSpacing: -1.5 },
   heading: { color: theme.colors.textPrimary, fontSize: theme.font.subheading, fontWeight: '500' },
   body: { color: theme.colors.textSecondary, fontSize: theme.font.body, lineHeight: 25 },
   caption: { color: theme.colors.textSecondary, fontSize: theme.font.caption, lineHeight: 19 },
@@ -63,7 +61,7 @@ export const ui = StyleSheet.create({
   card: { padding: theme.space.xl, backgroundColor: theme.colors.surface, borderRadius: theme.radius.card, gap: theme.space.lg },
   section: { gap: theme.space.md },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space.sm },
-  button: { minHeight: 48, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.textPrimary, borderRadius: theme.radius.control, padding: theme.space.lg },
+  button: { minHeight: 48, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.brand, borderRadius: theme.radius.control, padding: theme.space.lg },
   buttonText: { color: theme.colors.surface, fontSize: theme.font.body, fontWeight: '600', textAlign: 'center' },
   secondary: { borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
   secondaryText: { color: theme.colors.textPrimary },

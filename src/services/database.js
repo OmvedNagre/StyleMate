@@ -1,3 +1,4 @@
+import { profile } from '../constants/profile';
 import { openDatabaseAsync } from 'expo-sqlite';
 import { sampleClothing } from '../demo/data';
 
@@ -38,11 +39,13 @@ export function createRepository(db) {
       const outfits = await db.getAllAsync('SELECT snapshot_json FROM outfits WHERE is_favorite = 1 ORDER BY updated_at DESC, id ASC');
       const history = await db.getAllAsync('SELECT id, outfit_id, outfit_snapshot_json, worn_at FROM outfit_history ORDER BY worn_at DESC, id DESC');
       const setting = await db.getFirstAsync('SELECT value FROM settings WHERE key = ?', 'preferredStyle');
+      const onboarding = await db.getFirstAsync('SELECT value FROM settings WHERE key = ?', 'onboarded');
       return {
+        onboarded: onboarding?.value === '1',
         items: rows.map((row) => /** @type {Clothing} */ ({ id: row.id, name: row.name, imageUri: row.image_uri ?? undefined, category: row.category, itemType: row.item_type, color: row.color, style: row.style, pattern: row.pattern, seasons: JSON.parse(row.seasons_json), image: row.illustration })),
         savedOutfits: outfits.map((row) => { const snapshot = JSON.parse(row.snapshot_json); return /** @type {Outfit} */ ({ ...snapshot, items: snapshot.items ?? [], legacy: snapshot.id === 'demo-outfit' }); }),
         history: history.map((row) => /** @type {WearEntry} */ ({ id: row.id, outfitId: row.outfit_id, wornAt: row.worn_at, items: JSON.parse(row.outfit_snapshot_json) })),
-        preferredStyle: setting?.value ?? 'any',
+        preferredStyle: setting?.value ?? profile.defaultStyle,
       };
     },
     /** @param {Clothing} item */
@@ -80,6 +83,7 @@ export function createRepository(db) {
     },
     /** @param {string} style */
     async setStyle(style) { await db.runAsync('INSERT INTO settings VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', 'preferredStyle', style); },
+    async finishOnboarding() { await db.runAsync('INSERT OR IGNORE INTO settings VALUES (?, ?)', 'onboarded', '1'); },
     /** Samples are explicit opt-in and never replace photos or user edits. */
     async addSamples() {
       for (const item of sampleClothing) {

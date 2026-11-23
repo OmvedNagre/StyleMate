@@ -22,7 +22,7 @@ import { Button } from '../src/components/ui';
 
 jest.mock('../src/services/database', () => {
   let state;
-  const fresh = () => ({ items: require('../src/demo/data').sampleClothing, savedOutfits: [], history: [], preferredStyle: 'any' });
+  const fresh = () => ({ onboarded: true, items: require('../src/demo/data').sampleClothing, savedOutfits: [], history: [], preferredStyle: 'any' });
   const repo = {
     load: jest.fn(async () => state), cleanup: jest.fn(async () => {}),
     saveItem: jest.fn(async (item) => { state = { ...state, items: state.items.some((row) => row.id === item.id) ? state.items.map((row) => row.id === item.id ? item : row) : [item, ...state.items] }; }),
@@ -38,6 +38,11 @@ jest.mock('../src/services/database', () => {
 
 jest.mock('../src/services/imageService' , () => ({ pickImage: jest.fn(), persistImage: jest.fn(async () => 'file:///documents/wardrobe/clothing-test.jpg'), removeImage: jest.fn(async () => {}) }));
 
+jest.mock('lucide-react-native', () => {
+  const { View } = require('react-native');
+  return { Bookmark: View, Shirt: View, Sparkles: View };
+});
+
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => false }, useLocalSearchParams: () => ({ id: 'demo-shirt' }) }));
 jest.mock('react-native-safe-area-context', () => ({ SafeAreaView: require('react-native').View }));
 
@@ -50,9 +55,9 @@ const mount = async (component) => { const result = await render(<DemoProvider>{
 const state = () => JSON.parse(screen.getByTestId('state').props.children);
 beforeEach(() => { jest.clearAllMocks(); require('../src/services/database').resetFixture(); });
 
-test.each([Home, Wardrobe, Discover, Profile, Details, Edit, Results, Saved, History, NotFound])('%p renders with explicit demo disclosure', async (Component) => {
+test.each([Home, Wardrobe, Discover, Profile, Details, Edit, Results, Saved, History, NotFound])('%p renders the application shell', async (Component) => {
   await mount(<Component />);
-  expect(screen.getByText(/LOCAL WARDROBE/)).toBeTruthy();
+  expect(screen.getByTestId('state')).toBeTruthy();
 });
 
 test('wardrobe filters and its empty view remain navigable', async () => {
@@ -237,4 +242,23 @@ test('failed photo display shows a recoverable fallback', async () => {
   await render(<ClothingImage image="" imageUri="file:///missing.jpg" />);
   await fireEvent(screen.getByLabelText('Clothing photo'), 'error');
   expect(screen.getByText('Photo unavailable. Edit this piece to choose a replacement.')).toBeTruthy();
+});
+
+test('onboarding offers skip and completes from slide three', async () => {
+  const Onboarding = require('../src/components/Onboarding').default;
+  const onFinish = jest.fn(async () => {});
+  await render(<Onboarding onFinish={onFinish} />);
+  expect(screen.getByText('Skip')).toBeTruthy();
+  await fireEvent.press(screen.getByText('Next'));
+  await fireEvent.press(screen.getByText('Next'));
+  await fireEvent.press(screen.getByText('Start for free'));
+  expect(onFinish).toHaveBeenCalledTimes(1);
+});
+
+test('skipping onboarding completes it from the first slide', async () => {
+  const Onboarding = require('../src/components/Onboarding').default;
+  const onFinish = jest.fn(async () => {});
+  await render(<Onboarding onFinish={onFinish} />);
+  await fireEvent.press(screen.getByText('Skip'));
+  expect(onFinish).toHaveBeenCalledTimes(1);
 });

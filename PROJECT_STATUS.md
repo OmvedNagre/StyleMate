@@ -48,3 +48,9 @@ Phase 7 documentation is prepared and checked against the implementation. The in
 
 ## Next action
 Execute docs/DEVICE_TEST_MATRIX.md on native devices/runtimes and resolve failures to finish Phase 6 acceptance. Use docs/DEMO_AND_VIVA.md for the demonstration once device checks pass.
+
+## UI revamp
+
+Added first-launch onboarding, icon-only Lucide tabs with accessibility labels, updated Home and wardrobe, and Omved's local profile with live counts. Smart casual is the initial style preference. Tag edits reuse the existing wardrobe editor. AI tagging remains a separate trial. Native swipe, navigation and visual checks remain pending on iPhone.
+
+Revamp verification: 80 tests, lint, JavaScript type checking, and both mobile bundle exports passed.

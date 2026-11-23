@@ -27,7 +27,7 @@ export default function ClothingDetailsScreen() {
     <ClothingImage image={item.image} imageUri={item.imageUri} />
     <View style={ui.card}>{[['Color', item.color], ['Style', item.style], ['Pattern', item.pattern], ['Seasons', item.seasons.map(label).join(', ')]].map(([key, value]) => <View key={key} style={ui.section}><Text style={ui.caption}>{key}</Text><Text style={ui.label}>{label(value)}</Text></View>)}</View>
     <Text accessibilityLiveRegion="polite" style={ui.error}>{error}</Text>
-    <Button title="Edit piece" disabled={busy} onPress={() => router.push({ pathname: '/clothing/edit', params: { id: item.id } })} />
+    <Button title="Edit tags" disabled={busy} onPress={() => router.push({ pathname: '/clothing/edit', params: { id: item.id } })} />
     <Button title={busy ? "Removing…" : "Remove piece"} disabled={busy} danger onPress={remove} />
   </Screen>;
 }

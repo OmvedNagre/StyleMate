@@ -1,19 +1,20 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { persistImage, removeImage } from '../services/imageService';
 import { getRepository } from '../services/database';
+import Onboarding from '../components/Onboarding';
 import { Screen, StateCard } from '../components/ui';
 
 /** @typedef {import('./data').Clothing} Clothing */
 /** @typedef {{id: string, wornAt: string, items: Clothing[], outfitId?: string}} WearEntry */
 /** @typedef {import('../utils/recommendationEngine').Outfit} Outfit */
-/** @typedef {{items: Clothing[], savedOutfits: Outfit[], history: WearEntry[], preferredStyle: string}} StoredState */
+/** @typedef {{items: Clothing[], savedOutfits: Outfit[], history: WearEntry[], preferredStyle: string, onboarded: boolean}} StoredState */
 /** @typedef {StoredState & {wornIds: string[], setPreferredStyle: (value: string) => Promise<void>, saveItem: (item: Clothing) => Promise<void>, deleteItem: (id: string) => Promise<void>, toggleSaved: (outfit: Outfit) => Promise<void>, markWorn: (outfit: Outfit, repeat?: boolean) => Promise<void>, reset: () => Promise<void>, clear: () => Promise<void>}} WardrobeState */
 const DemoContext = createContext(/** @type {WardrobeState | null} */ (null));
 
 /** Historical name retained for route compatibility; state is now backed by SQLite.
  * @param {{children: import('react').ReactNode}} props */
 export function DemoProvider({ children }) {
-  const [state, setState] = useState(/** @type {StoredState} */ ({ items: [], savedOutfits: [], history: [], preferredStyle: 'any' }));
+  const [state, setState] = useState(/** @type {StoredState} */ ({ items: [], savedOutfits: [], history: [], preferredStyle: 'any', onboarded: false }));
   const current = useRef(state);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
@@ -48,6 +49,7 @@ export function DemoProvider({ children }) {
     return next;
   };
   if (error || !ready) return <Screen title="Your wardrobe."><StateCard kind={error ? 'error' : 'loading'} title={error ? 'Storage needs attention' : 'Opening your collection'} description={error || 'Reading your wardrobe from this device.'} action={error ? 'Retry' : undefined} onAction={error ? () => { setError(''); setReady(false); setAttempt((value) => value + 1); } : undefined} /></Screen>;
+  if (!state.onboarded) return <Onboarding onFinish={() => mutate((repository) => repository.finishOnboarding())} />;
   return <DemoContext.Provider value={{ ...state, wornIds,
     saveItem: (item) => mutate(async (repository) => {
       const previous = current.current.items.find((entry) => entry.id === item.id);

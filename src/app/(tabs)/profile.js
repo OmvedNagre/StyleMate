@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { Alert, Text, View } from 'react-native';
-import { Screen, Button, Choices, StateCard, ui } from '../../components/ui';
+import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Screen, Button, Choices, ui } from '../../components/ui';
+import { profile } from '../../constants/profile';
+import { theme } from '../../constants/theme';
 import { styles } from '../../constants/wardrobeOptions';
 import { useDemo } from '../../demo/DemoContext';
 export default function ProfileScreen() {
@@ -9,20 +11,35 @@ export default function ProfileScreen() {
   const [error, setError] = useState('');
   /** @param {() => Promise<void>} action */
   const perform = async (action) => { setError(''); try { await action(); } catch { setError('Could not save the change. Please try again.'); } };
-  const [preview, setPreview] = useState('none');
+  const stats = [
+    { label: 'Clothing added', value: demo.items.filter((item) => item.imageUri).length },
+    { label: 'Saved outfits', value: demo.savedOutfits.length },
+    { label: 'Wears logged', value: demo.history.length },
+  ];
   const confirm = (clear = false) => Alert.alert(clear ? 'Empty the demo wardrobe?' : 'Restore the sample collection?', 'This changes only sample illustrations. Photo pieces, favorites, and history are preserved. Adding samples does not replace existing edits.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Continue', onPress: () => perform(clear ? demo.clear : demo.reset) }]);
-  return <Screen title="Made for you." subtitle="Your wardrobe. Your rhythm. No account needed.">
+  return <Screen title="Profile">
+    <View style={ui.card}>
+      <View style={profileStyles.avatar}><Text style={ui.heading}>{profile.initial}</Text></View>
+      <Text style={ui.heading}>{profile.name}</Text>
+      <Text style={ui.body}>{profile.gender} · Local profile</Text>
+      <View style={ui.wrap}>
+        {stats.map(({ label, value }) => <View key={label} style={profileStyles.stat}>
+          <Text style={ui.heading}>{value}</Text><Text style={ui.caption}>{label}</Text>
+        </View>)}
+      </View>
+    </View>
     <Button title={`Saved outfits · ${demo.savedOutfits.length}`} secondary onPress={() => router.push('/outfits/saved')} />
     <Button title={`Outfit history · ${demo.history.length}`} secondary onPress={() => router.push('/outfits/history')} />
     <Choices title="Default style" values={['any', ...styles]} selected={demo.preferredStyle} onSelect={(value) => perform(() => demo.setPreferredStyle(value))} />
     <Text style={ui.caption}>Used when Discover first opens. Existing selections in an open Discover screen stay unchanged.</Text>
-    <View style={ui.card}><Text style={ui.heading}>A more considered everyday.</Text><Text style={ui.body}>StyleMate helps you rediscover the pieces you own. The app keeps your wardrobe on-device and explains outfit suggestions through simple rules.</Text><Text style={ui.caption}>Version 0.1.0 · Local wardrobe assistant</Text></View>
     <Text accessibilityLiveRegion="polite" style={ui.error}>{error}</Text>
-    <Text style={ui.heading}>Explore the prototype</Text>
-    <Button title="Restore demo collection" secondary onPress={() => confirm()} />
+    <Text style={ui.heading}>Sample wardrobe</Text>
+    <Button title="Add sample pieces" secondary onPress={() => confirm()} />
     <Button title="Hide sample pieces" secondary onPress={() => confirm(true)} />
-    <Choices title="UI state preview" values={['none', 'loading', 'error']} selected={preview} onSelect={setPreview} />
-    {preview === 'loading' && <StateCard kind="loading" title="Loading state preview" description="This is a visual demonstration; no request is running." action="Close preview" onAction={() => setPreview('none')} />}
-    {preview === 'error' && <StateCard kind="error" title="Error state preview" description="A recoverable error would appear here. Your demo data is unaffected." action="Dismiss preview" onAction={() => setPreview('none')} />}
   </Screen>;
 }
+
+const profileStyles = StyleSheet.create({
+  avatar: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.tint },
+  stat: { flexGrow: 1, minWidth: 94, gap: 4, padding: 12, borderRadius: 12, backgroundColor: theme.colors.tint },
+});

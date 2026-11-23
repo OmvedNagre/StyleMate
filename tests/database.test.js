@@ -101,3 +101,11 @@ test('sample controls preserve user photos and do not replace existing edits', a
   await repo.hideSamples();
   expect((await repo.load()).items).toEqual([item]);
 });
+
+test('onboarding is durable and safe to complete twice', async () => {
+  expect((await repo.load()).onboarded).toBe(false);
+  await repo.finishOnboarding();
+  await repo.finishOnboarding();
+  native.close(); open(); await repo.initialize();
+  expect((await repo.load()).onboarded).toBe(true);
+});
