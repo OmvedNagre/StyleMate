@@ -2,7 +2,8 @@ import { File } from 'expo-file-system';
 import { fetch } from 'expo/fetch';
 import { categories, colors, patterns, types } from '../constants/wardrobeOptions';
 
-const endpoint = __DEV__ ? process.env.EXPO_PUBLIC_STYLEMATE_TAG_URL : undefined;
+const trialEnabled = false;
+const endpoint = trialEnabled && __DEV__ ? process.env.EXPO_PUBLIC_STYLEMATE_TAG_URL : undefined;
 export const taggingAvailable = !!endpoint;
 
 /** @param {string} uri */
